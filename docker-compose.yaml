@@ -1,0 +1,46 @@
+version: '2.3'
+
+services:
+  dicord-bot-api:
+    container_name: dicord-bot-api
+    build:
+      context: './'
+      dockerfile: Dockerfile
+      target: dev
+    restart: always
+    environment:
+      PORT: '3000'
+      HEALTHCHECK_URL: '127.0.0.1'
+      HEALTHCHECK_PORT: '3000'
+      TZ: 'Europe/Oslo'
+      ports: '3000:3000'
+      COSMOS_DB_ID: 'discordbot'
+      COSMOS_DB_CONTAINER: 'Users'
+
+    volumes:
+      # - './SocketServer/src:/usr/src/app/src'
+      # - './SocketServer/xml:/usr/src/app/xml'
+      - './:/usr/src/app'
+    ports:
+      - '3000:3000'
+    expose:
+      - '3000'
+    healthcheck:
+      test: curl -sS http://127.0.0.1:3000 || exit 1
+      interval: 5s
+      timeout: 10s
+      retries: 10
+
+  redis:
+    container_name: discord-redis
+    image: redis
+    ports:
+      - '6379:6379'
+    expose:
+      - '6379'
+    volumes:
+      - ./redis-data:/data
+    entrypoint: redis-server --appendonly yes
+    restart: always
+    # networks:
+    # - back-tier
